@@ -7,6 +7,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('All');
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState(null);
   const [viewingNote, setViewingNote] = useState(null);
 
@@ -27,7 +28,22 @@ export default function Home() {
         },
       ]);
     }
+
+    const storedTheme = localStorage.getItem('app-theme');
+    if (storedTheme) {
+      setIsDarkMode(storedTheme === 'dark');
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDarkMode(prefersDark);
+    }
+    setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      localStorage.setItem('app-theme', isDarkMode ? 'dark' : 'light');
+    }
+  }, [isDarkMode, isMounted]);
 
   useEffect(() => {
     const handleOutside = () => setActiveDropdownId(null);
@@ -103,6 +119,8 @@ export default function Home() {
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
   }, [notes, searchQuery, selectedTag]);
+
+  if (!isMounted) return null;
 
   return (
     <div className={`min-h-screen w-full transition-all duration-500 font-poppins relative ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
